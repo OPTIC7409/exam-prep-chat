@@ -34,34 +34,50 @@ export default function Home() {
     setIsUploading(true);
     setUploadError("");
 
-    try {
-      const file = files[0];
-      const formData = new FormData();
-      formData.append("file", file);
+    const fileArray = Array.from(files);
+    const results = await Promise.allSettled(
+      fileArray.map(async (file) => {
+        const formData = new FormData();
+        formData.append("file", file);
+        const res = await fetch("/api/upload", { method: "POST", body: formData });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Upload failed");
+        return { filename: data.filename, text: data.text };
+      })
+    );
 
-      const res = await fetch("/api/upload", {
-        method: "POST",
-        body: formData,
-      });
+    const succeeded: { filename: string; text: string }[] = [];
+    const failed: string[] = [];
 
-      const data = await res.json();
-
-      if (!res.ok) {
-        throw new Error(data.error || "Upload failed");
+    results.forEach((result, i) => {
+      if (result.status === "fulfilled") {
+        succeeded.push(result.value);
+      } else {
+        failed.push(fileArray[i].name);
       }
+    });
 
+    if (succeeded.length > 0) {
+      const newContext = succeeded
+        .map(({ filename, text }) => `**${filename}**\n\n${text}`)
+        .join("\n\n---\n\n");
       setDocumentContext((prev) =>
-        prev
-          ? `${prev}\n\n---\n**${data.filename}**\n\n${data.text}`
-          : `**${data.filename}**\n\n${data.text}`
+        prev ? `${prev}\n\n---\n\n${newContext}` : newContext
       );
-      setUploadedFiles((prev) => [...prev, data.filename]);
-    } catch (err) {
-      setUploadError(err instanceof Error ? err.message : "Upload failed");
-    } finally {
-      setIsUploading(false);
-      e.target.value = "";
+      setUploadedFiles((prev) => [
+        ...prev,
+        ...succeeded.map((s) => s.filename),
+      ]);
     }
+
+    if (failed.length > 0) {
+      setUploadError(
+        `Failed to upload: ${failed.join(", ")}`
+      );
+    }
+
+    setIsUploading(false);
+    e.target.value = "";
   };
 
   const clearDocuments = () => {
@@ -132,6 +148,7 @@ export default function Home() {
               ref={fileInputRef}
               type="file"
               accept=".pdf,.pptx,.docx,.txt"
+              multiple
               onChange={handleUpload}
               className="hidden"
             />
@@ -141,7 +158,7 @@ export default function Home() {
               disabled={isUploading}
               className="rounded-lg border border-slate-600 bg-slate-800 px-3 py-1.5 text-sm font-medium text-slate-200 transition hover:border-slate-500 hover:bg-slate-700 disabled:opacity-50"
             >
-              {isUploading ? "Uploading…" : "Upload notes"}
+              {isUploading ? "Uploading…" : "Upload notes (multiple)"}
             </button>
             {uploadedFiles.length > 0 && (
               <button
