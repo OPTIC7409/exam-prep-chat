@@ -1,36 +1,39 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Exam Prep Chat
 
-## Getting Started
+A Next.js chatbot that uses OpenAI to answer questions about your study materials. Upload lecture slides, tutorial notes, or PDFs, then ask questions or request summaries for exam prep.
 
-First, run the development server:
+## Setup
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. **Install dependencies** (already done):
+   ```bash
+   npm install
+   ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. **Add your OpenAI API key** – create a `.env.local` file in the project root:
+   ```
+   OPENAI_API_KEY=sk-your-openai-api-key-here
+   ```
+   Get your key from [OpenAI Platform](https://platform.openai.com/api-keys).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. **Run the dev server**:
+   ```bash
+   npm run dev
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+4. Open [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+## Features
 
-To learn more about Next.js, take a look at the following resources:
+- **Chat with AI** – Ask questions and get answers powered by GPT-4o-mini
+- **Upload documents** – PDF, PowerPoint (.pptx), Word (.docx), or plain text (.txt)
+- **Context-aware answers** – The AI uses your uploaded material to answer questions
+- **Study summaries** – Request key points, exam-style summaries, and study guides
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Usage
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. Click **Upload notes** and select your lecture slides, tutorial notes, or PDFs
+2. Ask questions about the material or use quick prompts like:
+   - "Summarise the key points for this material"
+   - "What are the main concepts I should know for the exam?"
+   - "Create a study guide from this content"
+3. Click **Clear** to remove uploaded documents and start fresh
