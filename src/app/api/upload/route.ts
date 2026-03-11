@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractText, getDocumentProxy } from "unpdf";
+import { extractText } from "unpdf";
 import { getTextExtractor } from "office-text-extractor";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -59,9 +59,8 @@ export async function POST(req: NextRequest) {
     if (isTxt) {
       extractedText = new TextDecoder().decode(buffer);
     } else if (isPdf) {
-      // Use unpdf for PDFs - serverless build avoids pdf.worker path issues in Next.js
-      const pdf = await getDocumentProxy(buffer, { disableWorker: true });
-      const result = await extractText(pdf, { mergePages: true });
+      // Let unpdf manage PDF loading using its bundled serverless PDF.js build.
+      const result = await extractText(buffer, { mergePages: true });
       extractedText = result.text;
     } else {
       const extractor = getTextExtractor();
