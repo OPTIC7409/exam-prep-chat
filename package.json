@@ -9,12 +9,15 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@mohtasham/md-to-docx": "^2.6.1",
     "next": "16.1.6",
     "office-text-extractor": "^4.0.0",
     "openai": "^6.22.0",
+    "pdf-lib": "^1.17.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
-    "react-markdown": "^10.1.0"
+    "react-markdown": "^10.1.0",
+    "unpdf": "^1.4.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",

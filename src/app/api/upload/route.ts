@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { extractText, getDocumentProxy } from "unpdf";
 import { getTextExtractor } from "office-text-extractor";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -21,9 +22,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const isTxt =
-      file.type === "text/plain" || file.name.toLowerCase().endsWith(".txt");
-    if (!ALLOWED_TYPES.includes(file.type) && !isTxt) {
+    const lowerName = file.name.toLowerCase();
+    const isTxt = file.type === "text/plain" || lowerName.endsWith(".txt");
+    const isPdf = file.type === "application/pdf" || lowerName.endsWith(".pdf");
+    const isDocx =
+      file.type ===
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+      lowerName.endsWith(".docx");
+    const isPptx =
+      file.type ===
+        "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+      lowerName.endsWith(".pptx");
+
+    // Some browsers/storage providers send empty or generic MIME types.
+    // Fall back to extension checks so valid files are still processed.
+    if (!ALLOWED_TYPES.includes(file.type) && !isTxt && !isPdf && !isDocx && !isPptx) {
       return NextResponse.json(
         {
           error:
@@ -45,6 +58,11 @@ export async function POST(req: NextRequest) {
 
     if (isTxt) {
       extractedText = new TextDecoder().decode(buffer);
+    } else if (isPdf) {
+      // Use unpdf for PDFs - serverless build avoids pdf.worker path issues in Next.js
+      const pdf = await getDocumentProxy(buffer, { disableWorker: true });
+      const result = await extractText(pdf, { mergePages: true });
+      extractedText = result.text;
     } else {
       const extractor = getTextExtractor();
       extractedText = await extractor.extractText({
