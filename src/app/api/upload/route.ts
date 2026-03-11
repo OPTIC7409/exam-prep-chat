@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { extractText } from "unpdf";
 import { getTextExtractor } from "office-text-extractor";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
@@ -9,6 +8,19 @@ const ALLOWED_TYPES = [
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // docx
   "text/plain",
 ];
+
+async function extractPdfText(buffer: Uint8Array): Promise<string> {
+  // pdf-parse runs in Node without requiring a separate worker asset.
+  const { PDFParse } = await import("pdf-parse");
+  const parser = new PDFParse({ data: buffer });
+
+  try {
+    const result = await parser.getText();
+    return result.text ?? "";
+  } finally {
+    await parser.destroy().catch(() => undefined);
+  }
+}
 
 export async function POST(req: NextRequest) {
   try {
@@ -59,9 +71,7 @@ export async function POST(req: NextRequest) {
     if (isTxt) {
       extractedText = new TextDecoder().decode(buffer);
     } else if (isPdf) {
-      // Let unpdf manage PDF loading using its bundled serverless PDF.js build.
-      const result = await extractText(buffer, { mergePages: true });
-      extractedText = result.text;
+      extractedText = await extractPdfText(buffer);
     } else {
       const extractor = getTextExtractor();
       extractedText = await extractor.extractText({

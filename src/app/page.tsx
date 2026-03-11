@@ -8,6 +8,8 @@ type Message = {
   content: string;
 };
 
+const MAX_PARALLEL_UPLOADS = 2;
+
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -35,16 +37,23 @@ export default function Home() {
     setUploadError("");
 
     const fileArray = Array.from(files);
-    const results = await Promise.allSettled(
-      fileArray.map(async (file) => {
+    const tasks = fileArray.map(
+      (file) => async (): Promise<{ filename: string; text: string }> => {
         const formData = new FormData();
         formData.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || "Upload failed");
         return { filename: data.filename, text: data.text };
-      })
+      }
     );
+    const results: PromiseSettledResult<{ filename: string; text: string }>[] = [];
+
+    for (let i = 0; i < tasks.length; i += MAX_PARALLEL_UPLOADS) {
+      const batch = tasks.slice(i, i + MAX_PARALLEL_UPLOADS);
+      const batchResults = await Promise.allSettled(batch.map((task) => task()));
+      results.push(...batchResults);
+    }
 
     const succeeded: { filename: string; text: string }[] = [];
     const failed: string[] = [];
