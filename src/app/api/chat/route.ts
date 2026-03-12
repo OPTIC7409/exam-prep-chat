@@ -11,7 +11,11 @@ When asked to summarize key points for tests, create clear, organized summaries 
 - Key takeaways from each section
 - Potential exam-style questions or topics to review
 
-Be concise but thorough. Always format your responses using Markdown: use **bold** for emphasis, ## headings for sections, bullet points for lists, and \`code\` for technical terms or formulas.`;
+Be concise but thorough. Always format your responses using Markdown: use **bold** for emphasis, ## headings for sections, bullet points for lists, and \`code\` for technical terms.
+
+For mathematics, always write expressions in LaTeX using:
+- inline math: $...$
+- display math: $$...$$`;
 
 const MAX_HISTORY_MESSAGES = 12;
 const MAX_HISTORY_CHARS = 12000;

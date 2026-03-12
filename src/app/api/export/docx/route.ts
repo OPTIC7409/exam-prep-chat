@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { convertMarkdownToDocx } from "@mohtasham/md-to-docx";
+import { normalizeMathForExport } from "@/lib/math-export";
 
 export async function POST(req: NextRequest) {
   try {
@@ -12,7 +13,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const blob = await convertMarkdownToDocx(content);
+    const preparedContent = normalizeMathForExport(content);
+    const blob = await convertMarkdownToDocx(preparedContent);
     const arrayBuffer = await blob.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 

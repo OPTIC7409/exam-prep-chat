@@ -4,6 +4,7 @@ import {
   StandardFonts,
   rgb,
 } from "pdf-lib";
+import { normalizeMathForExport } from "@/lib/math-export";
 
 const MARGIN = 50;
 const PAGE_WIDTH = 595;
@@ -87,6 +88,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    const preparedContent = normalizeMathForExport(content);
     const pdfDoc = await PDFDocument.create();
     const helvetica = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const helveticaBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
@@ -94,7 +96,7 @@ export async function POST(req: NextRequest) {
     let page = pdfDoc.addPage([PAGE_WIDTH, PAGE_HEIGHT]);
     let y = PAGE_HEIGHT - MARGIN;
 
-    const blocks = mdToLines(content);
+    const blocks = mdToLines(preparedContent);
 
     for (const { text, size } of blocks) {
       const wrapped = wrapText(text, size);
