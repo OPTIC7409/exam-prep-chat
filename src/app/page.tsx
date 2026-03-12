@@ -42,8 +42,18 @@ export default function Home() {
         const formData = new FormData();
         formData.append("file", file);
         const res = await fetch("/api/upload", { method: "POST", body: formData });
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Upload failed");
+        const contentType = res.headers.get("content-type") ?? "";
+        const isJson = contentType.includes("application/json");
+        const data = isJson ? await res.json() : null;
+        if (!res.ok) {
+          if (data?.error) throw new Error(data.error);
+          const textBody = isJson ? "" : await res.text();
+          const snippet = textBody.replace(/\s+/g, " ").slice(0, 160);
+          throw new Error(
+            `Upload failed (HTTP ${res.status})${snippet ? `: ${snippet}` : ""}`
+          );
+        }
+        if (!data) throw new Error("Upload failed: invalid server response");
         return { filename: data.filename, text: data.text };
       }
     );

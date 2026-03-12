@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getTextExtractor } from "office-text-extractor";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 const ALLOWED_TYPES = [
@@ -67,6 +69,7 @@ export async function POST(req: NextRequest) {
     } else if (isPdf) {
       extractedText = await extractPdfText(buffer);
     } else {
+      const { getTextExtractor } = await import("office-text-extractor");
       const extractor = getTextExtractor();
       extractedText = await extractor.extractText({
         input: buffer,
