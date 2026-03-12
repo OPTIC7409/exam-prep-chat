@@ -10,16 +10,10 @@ const ALLOWED_TYPES = [
 ];
 
 async function extractPdfText(buffer: Uint8Array): Promise<string> {
-  // pdf-parse runs in Node without requiring a separate worker asset.
-  const { PDFParse } = await import("pdf-parse");
-  const parser = new PDFParse({ data: buffer });
-
-  try {
-    const result = await parser.getText();
-    return result.text ?? "";
-  } finally {
-    await parser.destroy().catch(() => undefined);
-  }
+  // Use the internal Node parser entry; it sets PDFJS.disableWorker = true.
+  const { default: pdfParse } = await import("pdf-parse/lib/pdf-parse.js");
+  const result = await pdfParse(Buffer.from(buffer));
+  return result.text ?? "";
 }
 
 export async function POST(req: NextRequest) {
